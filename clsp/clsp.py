@@ -35,9 +35,9 @@ class SelectionPrompt:
 
         with self._term.cbreak():
 
-            self._render()
-
             while True:
+
+                self._render()
 
                 key = self._term.inkey(timeout=5)
 
@@ -53,15 +53,14 @@ class SelectionPrompt:
 
                     self._navigate_menu(-1)
 
-                #self._flush()
-                #self._render()
+                self._flush()
 
                 # print(key.name)
 
     def _navigate_menu(self, up_or_down):
 
-        if self._current == 0 or \
-           self._current == len(self._selection) - 1:
+        if self._current == 0 and up_or_down == -1 or \
+           self._current == len(self._selection) - 1 and up_or_down == 1:
 
             return
 
@@ -95,7 +94,8 @@ class SelectionPrompt:
 
     def _print(self, out):
 
-        print(out)
+        stdout.write(out + "\n")
+        stdout.flush()
 
         self._written_lines += 1 + out.count("\n")
 
@@ -127,17 +127,17 @@ class SelectionPrompt:
 
         full_write = ""
 
-        if self._cursor_pos["x"] < cursor_x:
-            full_write += self._term.move_right * (cursor_x - self._cursor_pos["x"])
-
-        elif self._cursor_pos["x"] > cursor_x:
-            full_write += self._term.move_left * (self._cursor_pos["x"] - cursor_x)
-
         if self._cursor_pos["y"] < cursor_y:
             full_write += self._term.move_down * (cursor_y - self._cursor_pos["y"])
 
         elif self._cursor_pos["y"] > cursor_x:
             full_write += self._term.move_up * (self._cursor_pos["y"] - cursor_y)
+
+        if self._cursor_pos["x"] < cursor_x:
+            full_write += self._term.move_right * (cursor_x - self._cursor_pos["x"])
+
+        elif self._cursor_pos["x"] > cursor_x:
+            full_write += self._term.move_left * (self._cursor_pos["x"] - cursor_x)
 
         stdout.write(full_write)
         stdout.flush()
@@ -149,10 +149,11 @@ class SelectionPrompt:
         self._move_cursor(0, 0)
 
         stdout.write(self._term.clear_eos)
-        stdout.write(self._term.clear_eol)
+        # stdout.write(self._term.clear_eol)
         stdout.flush()
 
         self._written_lines = 0
+        self._cursor_pos = None
 
 
 def select(selection, **kwargs):

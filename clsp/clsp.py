@@ -5,7 +5,7 @@ from sys import stdout
 from blessed import Terminal
 
 
-class Selection:
+class Selection:  # TODO: Return this object instead of item
 
     def __init__(self):
 
@@ -16,24 +16,55 @@ class Selection:
 
 class SelectionPrompt:
 
-    def __init__(self, selection, info="", prompt="> ", rows=4, current=0, cutoff=0.25):
+    def __init__(self, selection, info="", prompt="> ", current=0, rows=4, cutoff=0.15, highlight_color="yellow"):
+        """ Prompt for user selection.
 
+        Arguments
+        ---------
+        :arg selection (LIST): The available choices to display the user.
+
+
+        Keyword Arguments
+        -----------------
+        :arg info (STR): Information shown above prompt. / Prompt title.
+        :arg prompt (STR): Text in front of user input.
+        :arg current (INT): Current item of list as default selection.
+        :arg rows (INT): Amount of visible choices.
+        :arg cutoff (INT): Search precision.
+        :arg highlight_color (STR): Search higlight color.
+        :arg full_exit (BOOL): (TODO: Not implemented yet) Exit completely or pass None on KeyBoardInterrupt or ESC.
+
+        """
+
+        # Variables | Static variables
         self._term = Terminal()
-        self._selection = [str(option) for option in selection]
 
-        self._currently_shown = self._selection[:rows]
-        self._current_position = [0, rows]
-        self._current = current
+        self._key_timeout = 5
+
+        self._highlight_color = {"black": self._term.black, "red": self._term.red, "green": self._term.green, "yellow": self._term.yellow, "blue": self._term.blue, "magenta": self._term.magenta, "cyan": self._term.cyan, "white": self._term.white}[highlight_color]  # TODO: Find better solution
+
+        # Variables | Static User Variables
+        self._selection = [str(option) for option in selection]
+        self._info = info
+        self._prompt = prompt
         self._rows = rows
-        self._search = ""
+        self._cutoff = cutoff
+
+        # Variables | Dynamic variables (Terminal State)
         self._cursor_pos = None
         self._written_lines = 0
 
-        self._info = info
-        self._prompt = prompt
-        self._cutoff = cutoff
+        # Variables | Dynamic variables (List)
+        self._current = current
+        self._currently_shown = self._selection[:rows]  # TODO Interfiers with user current option
+        self._current_position = [0, rows]
+
+        # Variables | Dynamic variables (Input)
+        self._search = ""
 
     def show(self):
+        """ Entry Point | Main Loop
+        """
 
         with self._term.cbreak():
 
@@ -41,11 +72,8 @@ class SelectionPrompt:
 
                 self._render()
 
-                open("log.txt", "a").write("\n\n")
-                open("log.txt", "a").write(str(self._cursor_pos) + "\n" + str(self._written_lines))
-                open("log.txt", "a").write("\n\n")
-
-                key = self._term.inkey(timeout=5)
+                # KEY BINDINGS
+                key = self._term.inkey(timeout=self._key_timeout)
 
                 if key.name == "KEY_ESCAPE":
 
@@ -53,9 +81,7 @@ class SelectionPrompt:
 
                 elif key.name == "KEY_ENTER":
 
-                    self._flush()
-
-                    return self._currently_shown[self._current]
+                    return self._return_selection()
 
                 elif key.name == "KEY_DOWN":
 
@@ -66,41 +92,42 @@ class SelectionPrompt:
                     self._navigate_menu(-1)
 
                 elif key.name == "KEY_BACKSPACE" and \
-                        self._search != "":
+                        self._search != "":  # On Backspace
 
                     self._search = self._search[:-1]
 
-                elif len(key) == 1 and \
-                        len(self._search) < (self._term.width - len(self._prompt)) and \
-                        key.name != "KEY_BACKSPACE":
+                elif len(key) == 1 and key.name is None and \
+                        len(self._search) < (self._term.width - len(self._prompt)):  # On Key except special keys
 
                     self._search += key
 
                 self._flush()
 
-                # print(key.name)
+    def _navigate_menu(self, up_or_down):  # TODO: Highlighted does not work with higher list len
+        """ Navigates Menu one item down or up
 
-    def _navigate_menu(self, up_or_down):
+        :arg up_or_down (INT): -1 for up and 1 for down.
 
+        """
+
+        # Check for list border
         if self._current == 0 and up_or_down == -1 or \
            self._current == len(self._selection) - 1 and up_or_down == 1:
 
             return
 
+        # Change menu view point
         if self._current == self._current_position[0] and \
            up_or_down < 0:
 
-            self._current_position[0] -= 1
-            self._current_position[1] -= 1
-            self._currently_shown = self._selection[self._current_position[0]:self._current_position[1]]
+            self._move_list_view(-1)
 
         elif self._current == self._current_position[1] and \
                 up_or_down > 0:
 
-            self._current_position[0] += 1
-            self._current_position[1] += 1
-            self._currently_shown = self._selection[self._current_position[0]:self._current_position[1]]
+            self._move_list_view(1)
 
+        # Change current
         if up_or_down < 0:
 
             self._current -= 1
@@ -109,7 +136,21 @@ class SelectionPrompt:
 
             self._current += 1
 
+    def _move_list_view(self, up_or_down):
+        """ Navigates Menu view
+
+        :arg up_or_down (INT): -1 for up and 1 for down.
+
+        """
+
+        self._current_position[0] += up_or_down
+        self._current_position[1] += up_or_down
+
+        self._currently_shown = self._selection[self._current_position[0]:self._current_position[1]]
+
     def _exit(self):
+        """On KeyBoardInterrupt or ESC.
+        """
 
         self._flush()
 
@@ -120,9 +161,13 @@ class SelectionPrompt:
         stdout.write(out + "\n")
         stdout.flush()
 
-        open("log.txt", "a").write(out + "\n")
-
         self._written_lines += 1 + out.count("\n")
+
+    def _return_selection(self):
+
+        self._flush()
+
+        return self._currently_shown[self._current]
 
     def _render(self):
 
@@ -131,9 +176,13 @@ class SelectionPrompt:
 
         self._print(self._prompt + self._search)
 
-        if self._search != "" and True:  # TODO: Not for production | TODO Does not work
+        if self._search != "" and True:  # TODO: Not for production
 
             best_matches = get_close_matches(self._search, self._selection, cutoff=self._cutoff)
+
+            for pos, match in enumerate(best_matches):
+
+                best_matches[pos] = match.replace(self._search, self._highlight_color(self._search))  # TODO: Passes object with color
 
             self._currently_shown = best_matches[self._current_position[0]:self._current_position[1]]
 
@@ -169,8 +218,6 @@ class SelectionPrompt:
         elif self._cursor_pos["x"] > cursor_x:
             full_write += self._term.move_left * (self._cursor_pos["x"] - cursor_x)
 
-        open("log.txt", "a").write(full_write)
-
         stdout.write(full_write)
         stdout.flush()
 
@@ -190,8 +237,6 @@ class SelectionPrompt:
         stdout.write(self._term.clear_eos)
         # stdout.write(self._term.clear_eol)
         stdout.flush()
-
-        open("log.txt", "a").write(self._term.clear_eos)
 
         self._written_lines = 0
         self._cursor_pos = None

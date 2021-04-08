@@ -1,5 +1,5 @@
 from clsp.clsp import select
 
-out = select(["/home/clsp/Documents/clsp", "/home/clsp/Documents/clsp/clsp/"], info="")
+out = select(["/home/clsp/Documents/clsp", "/home/clsp/Documents/clsp/clsp/"])
 
-# print(out)
+print(out)

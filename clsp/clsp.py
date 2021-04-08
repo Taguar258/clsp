@@ -1,3 +1,4 @@
+from difflib import get_close_matches
 from sys import exit as sys_exit
 from sys import stdout
 
@@ -15,7 +16,7 @@ class Selection:
 
 class SelectionPrompt:
 
-    def __init__(self, selection, info="", prompt="> ", rows=4, current=0):
+    def __init__(self, selection, info="", prompt="> ", rows=4, current=0, cutoff=0.25):
 
         self._term = Terminal()
         self._selection = [str(option) for option in selection]
@@ -30,6 +31,7 @@ class SelectionPrompt:
 
         self._info = info
         self._prompt = prompt
+        self._cutoff = cutoff
 
     def show(self):
 
@@ -39,11 +41,21 @@ class SelectionPrompt:
 
                 self._render()
 
+                open("log.txt", "a").write("\n\n")
+                open("log.txt", "a").write(str(self._cursor_pos) + "\n" + str(self._written_lines))
+                open("log.txt", "a").write("\n\n")
+
                 key = self._term.inkey(timeout=5)
 
                 if key.name == "KEY_ESCAPE":
 
                     self._exit()
+
+                elif key.name == "KEY_ENTER":
+
+                    self._flush()
+
+                    return self._currently_shown[self._current]
 
                 elif key.name == "KEY_DOWN":
 
@@ -52,6 +64,17 @@ class SelectionPrompt:
                 elif key.name == "KEY_UP":
 
                     self._navigate_menu(-1)
+
+                elif key.name == "KEY_BACKSPACE" and \
+                        self._search != "":
+
+                    self._search = self._search[:-1]
+
+                elif len(key) == 1 and \
+                        len(self._search) < (self._term.width - len(self._prompt)) and \
+                        key.name != "KEY_BACKSPACE":
+
+                    self._search += key
 
                 self._flush()
 
@@ -97,6 +120,8 @@ class SelectionPrompt:
         stdout.write(out + "\n")
         stdout.flush()
 
+        open("log.txt", "a").write(out + "\n")
+
         self._written_lines += 1 + out.count("\n")
 
     def _render(self):
@@ -106,20 +131,25 @@ class SelectionPrompt:
 
         self._print(self._prompt + self._search)
 
+        if self._search != "" and True:  # TODO: Not for production | TODO Does not work
+
+            best_matches = get_close_matches(self._search, self._selection, cutoff=self._cutoff)
+
+            self._currently_shown = best_matches[self._current_position[0]:self._current_position[1]]
+
+        else:
+
+            self._currently_shown = self._selection[self._current_position[0]:self._current_position[1]]
+
         for pos, option in enumerate(self._currently_shown):
 
             option_msg = self._term.reverse(option) if pos == self._current else option
             self._print(option_msg)
 
-        self._move_cursor(2, 0)
+        self._reset_cursor()
+        self._move_cursor(len(self._prompt) + 1 * len(self._search), 0)
 
     def _move_cursor(self, cursor_x, cursor_y):
-
-        # self._cursor_pos = {"x": cursor_x, "y": cursor_y}
-
-        self._update_cursor(cursor_x, cursor_y)
-
-    def _update_cursor(self, cursor_x, cursor_y):
 
         if self._cursor_pos is None:
 
@@ -139,10 +169,19 @@ class SelectionPrompt:
         elif self._cursor_pos["x"] > cursor_x:
             full_write += self._term.move_left * (self._cursor_pos["x"] - cursor_x)
 
+        open("log.txt", "a").write(full_write)
+
         stdout.write(full_write)
         stdout.flush()
 
         self._cursor_pos = {"x": cursor_x, "y": cursor_y}
+
+    def _reset_cursor(self):  # TODO: Not for production  | Should be standard and before every move
+
+        self._move_cursor(0, 0)
+
+        self._written_lines = 0
+        self._cursor_pos = None
 
     def _flush(self):
 
@@ -151,6 +190,8 @@ class SelectionPrompt:
         stdout.write(self._term.clear_eos)
         # stdout.write(self._term.clear_eol)
         stdout.flush()
+
+        open("log.txt", "a").write(self._term.clear_eos)
 
         self._written_lines = 0
         self._cursor_pos = None
@@ -165,8 +206,10 @@ def select(selection, **kwargs):
 
     try:
 
-        prompt.show()
+        user_selection = prompt.show()
 
     except KeyboardInterrupt:
 
         prompt._exit()
+
+    return user_selection

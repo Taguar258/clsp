@@ -6,22 +6,34 @@ from blessed import Terminal
 
 
 class Selection:
-    """ TODO: Work on class.
+    """ Selection object passed as output of Selection Prompt.
+        Contains additional information.
+
+    :attr value: User selection.
+    :attr index: Index of given input list.  (TODO)
+    :attr search: Search query of user.
+
     """
 
-    def __init__(self, value):
+    def __init__(self, value, search=None):
 
         self.value = value
+        self.index = None  # TODO
+        self.search = search
 
     def __str__(self):
 
         return self.value
 
+    def __repr__(self):
+
+        return f"<Selection {self.value}>"
+
 
 class SelectionPrompt:
 
     def __init__(self, selection, info="", prompt="> ", search="", current=0, rows=4, cutoff=0.15, highlight_color="yellow", full_exit=True):
-        """ Prompt for user selection. # TODO: Go through class again and rethink
+        """ Prompt for user selection. # TODO: Go through class again and rethink + Redo comments
 
         Arguments
         ---------
@@ -64,12 +76,12 @@ class SelectionPrompt:
         self._written_lines = 0
 
         # Variables | Dynamic variables (List)
-        self._current = current
-        self._currently_shown = self._selection[:rows]  # TODO Interfiers with user current option
-        self._current_position = [0, rows]
+        self._reset_current_selection(self._selection, current=current)
+        self.return_placeholder = None
 
         # Variables | Dynamic variables (Input)
         self._search = search
+        self._searching = False  # TODO: Find better solution to determin end of search.
 
     def show(self):
         """ Entry Point | Main Loop
@@ -84,10 +96,14 @@ class SelectionPrompt:
                 # KEY BINDINGS
                 key = self._term.inkey(timeout=self._key_timeout)
 
-                self._key_bindings(key)  # TODO: Find method to return object
+                self._key_bindings(key)
 
-                # self._reset_cursor()  # TODO: Would also work (Overwrite instead of flush as standard)
                 self._flush()
+
+                # Return value
+                if self.return_placeholder is not None:
+
+                    return self.return_placeholder
 
     def _exit(self):
         """ On KeyBoardInterrupt or ESC.
@@ -110,7 +126,9 @@ class SelectionPrompt:
 
     def _flush(self):
         """ Clear the screen completely.
-        TODO: Better alternative might be overwriting.
+
+        Alternative would be overwriting, though it does not clear remaining characters.
+        - self._reset_cursor instead of self._flush
         """
 
         self._reset_cursor()
@@ -128,7 +146,7 @@ class SelectionPrompt:
 
         elif key.name == "KEY_ENTER":
 
-            return self._return_selection()  # TODO: Won't work anymore
+            self._return_selection()
 
         elif key.name == "KEY_DOWN":
 
@@ -211,24 +229,42 @@ class SelectionPrompt:
             self._print(option_msg)
 
         # Move the cursor to the input prompt.
-        self._reset_cursor()  # (Maybe overwrite) TODO: (Strange) Cursor position changes that's why we need to reset the cursor
+        self._reset_cursor()  # TODO: (Strange Issue) Cursor position changes, needs further investigation
+        """
+        Maybe the x does not get updated on key press but does not change anything.
+        """
+
         self._move_cursor(self._default_cursor_pos["x"] + len(self._search), self._default_cursor_pos["y"])
+
+    def _reset_current_selection(self, selection, current=0):
+
+        self._current_selection = selection
+        self._current = current
+        self._current_position = [self._current, (self._rows + self._current)]
+
+        # self._currently_shown = self._current_selection[self._current:(self._rows + self._current)]
 
     def _refresh_currently_shown(self):
         """ Update shown list.
         """
 
-        if self._search != "" and False:
+        if self._search != "":
 
-            best_matches = get_close_matches(self._search, self._selection, cutoff=self._cutoff)
+            self.best_matches = get_close_matches(self._search, self._selection, cutoff=self._cutoff)
 
-            best_matches_hl = [match.replace(self._search, self._highlight_color(self._search)) for match in best_matches]
+            best_matches_hl = [match.replace(self._search, self._highlight_color(self._search)) for match in self.best_matches]
 
-            self._currently_shown = best_matches_hl[self._current_position[0]:self._current_position[1]]  # TODO: Rework, will be broken due to currently shown and selected
+            self._reset_current_selection(best_matches_hl)
 
-        else:
+            self._searching = True
 
-            self._currently_shown = self._selection[self._current_position[0]:self._current_position[1]]
+        elif self._searching:
+
+            self._reset_current_selection(self._selection)
+
+            self._searching = False
+
+        self._currently_shown = self._current_selection[self._current_position[0]:self._current_position[1]]
 
     def _navigate_menu(self, up_or_down):
         """ Navigates Menu one item down or up
@@ -238,8 +274,8 @@ class SelectionPrompt:
         """
 
         # Check for list border
-        if self._current == 0 and up_or_down == -1 or \
-           self._current == len(self._selection) - 1 and up_or_down == 1:
+        if self._current == 0 and up_or_down < 0 or \
+           self._current == len(self._current_selection) - 1 and up_or_down > 0:
 
             return
 
@@ -280,12 +316,12 @@ class SelectionPrompt:
         self._flush()
 
         # Decolorize search output
-        return_value_nhl = self._currently_shown[self._current].replace(self._highlight_color(self._search), self._search)  # TODO: Won't work due to selection different than currently_shown.
+        return_value_nhl = self._current_selection[self._current].replace(self._highlight_color(self._search), self._search)
 
         # Create Object
-        return_value = Selection(return_value_nhl)
+        return_value = Selection(return_value_nhl, search=self._search)  # TODO: Add index of selection
 
-        return return_value
+        self.return_placeholder = return_value
 
 
 def select(selection, **kwargs):

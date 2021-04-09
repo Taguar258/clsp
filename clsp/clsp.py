@@ -20,8 +20,8 @@ class Selection:
 
 class SelectionPrompt:
 
-    def __init__(self, selection, info="", prompt="> ", current=0, rows=4, cutoff=0.15, highlight_color="yellow", full_exit=True):
-        """ Prompt for user selection.
+    def __init__(self, selection, info="", prompt="> ", search="", current=0, rows=4, cutoff=0.15, highlight_color="yellow", full_exit=True):
+        """ Prompt for user selection. # TODO: Go through class again and rethink
 
         Arguments
         ---------
@@ -32,6 +32,7 @@ class SelectionPrompt:
         -----------------
         :arg info (STR): Information shown above prompt. / Prompt title.
         :arg prompt (STR): Text in front of user input.
+        :arg search (STR): Pre-insert text into the input prompt.
         :arg current (INT): Current item of list as default selection.
         :arg rows (INT): Amount of visible choices.
         :arg cutoff (INT): Search precision.
@@ -68,7 +69,7 @@ class SelectionPrompt:
         self._current_position = [0, rows]
 
         # Variables | Dynamic variables (Input)
-        self._search = ""
+        self._search = search
 
     def show(self):
         """ Entry Point | Main Loop
@@ -83,37 +84,13 @@ class SelectionPrompt:
                 # KEY BINDINGS
                 key = self._term.inkey(timeout=self._key_timeout)
 
-                if key.name == "KEY_ESCAPE":
-
-                    self._exit()
-
-                elif key.name == "KEY_ENTER":
-
-                    return self._return_selection()
-
-                elif key.name == "KEY_DOWN":
-
-                    self._navigate_menu(1)
-
-                elif key.name == "KEY_UP":
-
-                    self._navigate_menu(-1)
-
-                elif key.name == "KEY_BACKSPACE" and \
-                        self._search != "":  # On Backspace
-
-                    self._search = self._search[:-1]
-
-                elif len(key) == 1 and key.name is None and \
-                        len(self._search) < (self._term.width - len(self._prompt)):  # On Key except special keys
-
-                    self._search += key
+                self._key_bindings(key)  # TODO: Find method to return object
 
                 # self._reset_cursor()  # TODO: Would also work (Overwrite instead of flush as standard)
                 self._flush()
 
     def _exit(self):
-        """On KeyBoardInterrupt or ESC.
+        """ On KeyBoardInterrupt or ESC.
         """
 
         self._flush()
@@ -140,6 +117,36 @@ class SelectionPrompt:
 
         stdout.write(self._term.clear_eos)
         stdout.flush()
+
+    def _key_bindings(self, key):
+        """ Function for all the key bindings.
+        """
+
+        if key.name == "KEY_ESCAPE":
+
+            self._exit()
+
+        elif key.name == "KEY_ENTER":
+
+            return self._return_selection()  # TODO: Won't work anymore
+
+        elif key.name == "KEY_DOWN":
+
+            self._navigate_menu(1)
+
+        elif key.name == "KEY_UP":
+
+            self._navigate_menu(-1)
+
+        elif key.name == "KEY_BACKSPACE" and \
+                self._search != "":  # On Backspace
+
+            self._search = self._search[:-1]
+
+        elif len(key) == 1 and key.name is None and \
+                len(self._search) < (self._term.width - len(self._prompt)):  # On Key except special keys
+
+            self._search += key
 
     def _move_cursor(self, cursor_x, cursor_y):  # TODO: Rework function to go back to 0, 0 and then to pos
         """ Change the cursor position.
@@ -200,7 +207,7 @@ class SelectionPrompt:
 
         for pos, option in enumerate(self._currently_shown):
 
-            option_msg = self._term.reverse(option) if pos == self._current else option
+            option_msg = self._term.reverse(option) if pos + self._current_position[0] == self._current else option
             self._print(option_msg)
 
         # Move the cursor to the input prompt.
@@ -211,19 +218,19 @@ class SelectionPrompt:
         """ Update shown list.
         """
 
-        if self._search != "":
+        if self._search != "" and False:
 
             best_matches = get_close_matches(self._search, self._selection, cutoff=self._cutoff)
 
-            best_matches = [match.replace(self._search, self._highlight_color(self._search)) for match in best_matches]  # TODO: Better alternative to redeclaring
+            best_matches_hl = [match.replace(self._search, self._highlight_color(self._search)) for match in best_matches]
 
-            self._currently_shown = best_matches[self._current_position[0]:self._current_position[1]]
+            self._currently_shown = best_matches_hl[self._current_position[0]:self._current_position[1]]  # TODO: Rework, will be broken due to currently shown and selected
 
         else:
 
             self._currently_shown = self._selection[self._current_position[0]:self._current_position[1]]
 
-    def _navigate_menu(self, up_or_down):  # TODO: Highlighted does not work with higher list len
+    def _navigate_menu(self, up_or_down):
         """ Navigates Menu one item down or up
 
         :arg up_or_down (INT): -1 for up and 1 for down.
@@ -236,17 +243,6 @@ class SelectionPrompt:
 
             return
 
-        # Change menu view point
-        if self._current == self._current_position[0] and \
-           up_or_down < 0:
-
-            self._move_list_view(-1)
-
-        elif self._current == self._current_position[1] and \
-                up_or_down > 0:
-
-            self._move_list_view(1)
-
         # Change current
         if up_or_down < 0:
 
@@ -255,6 +251,17 @@ class SelectionPrompt:
         elif up_or_down > 0:
 
             self._current += 1
+
+        # Change menu view point
+        if self._current == self._current_position[0] - 1 and \
+           up_or_down < 0:
+
+            self._move_list_view(-1)
+
+        elif self._current == self._current_position[1] and \
+                up_or_down > 0:
+
+            self._move_list_view(1)
 
     def _move_list_view(self, up_or_down):
         """ Navigates Menu view
@@ -273,10 +280,10 @@ class SelectionPrompt:
         self._flush()
 
         # Decolorize search output
-        return_value = self._currently_shown[self._current].replace(self._highlight_color(self._search), self._search)
+        return_value_nhl = self._currently_shown[self._current].replace(self._highlight_color(self._search), self._search)  # TODO: Won't work due to selection different than currently_shown.
 
         # Create Object
-        return_value = Selection(return_value)  # Better alternative to redeclaring.
+        return_value = Selection(return_value_nhl)
 
         return return_value
 

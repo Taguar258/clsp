@@ -1,5 +1,7 @@
 from clsp.clsp import select
 
-out = select(["/home/clsp/Documents/clsp", "/home/clsp/Documents/clsp/clsp/"] * 1, info="Test\nTest2")
+inp = ["/home/clsp/Documents/clsp", "/home/clsp/Documents/clsp/clsp/"] * 4
+
+out = select(list(range(1, 10)), info="Test\nTest2")
 
 print(out)

@@ -44,13 +44,13 @@ You can provide additional key arguments for further configuration:
 | search          | STR   | Pre-insert text into the input prompt.                                              |
 | current         | INT   | Index as the default selection.                                                     |
 | rows            | INT   | Amount of choices at a time.                                                        |
-| cutoff          | FLOAT | Precsion of search. (0 < x < 1).                                                    |
+| cutoff          | FLOAT | Precision of search. (0 < x < 1).                                                    |
 | highlight_color | STR   | Highlight color for search (black, red, green, yellow, blue, magenta, cyan, white). |
 | full_exit       | BOOL  | Exit completely or pass None on KeyBoardInterrupt or ESC.                           |
 | ignore_warnings | BOOL  | Ignore warnings.                                                                    |
 
 ```python
-# The function 'select' fill return a Selection object which holds following attributes:
+# The function 'select' will return a Selection object which holds following attributes:
 
 print(f"Selected value: {user_choice.value}")
 # > "Chose me!" or "Dear you chose me!"

@@ -1,6 +1,6 @@
 # CLSP
 
-<img src="https://img.shields.io/badge/Linux-yes-green"> <img src="https://img.shields.io/badge/MacOS-yes-green"> <img src="https://img.shields.io/badge/Windows-yes-green"> <img src="https://img.shields.io/badge/FreeBSD-yes-green"> <img src="https://img.shields.io/badge/Version-1.0-red">
+<img src="https://img.shields.io/badge/Version-1.0-orange"> <img src="https://img.shields.io/badge/Linux-yes-green"> <!--<img src="https://img.shields.io/badge/MacOS-yes-green"> <img src="https://img.shields.io/badge/Windows-yes-green"> <img src="https://img.shields.io/badge/FreeBSD-yes-green">-->
 
 CLSP short for **C**ommand **L**ine **S**election **P**rompt, is a minimalistic and fast to navigate single choice interface.
 
@@ -16,9 +16,9 @@ print(user_choice)
 
 ![Preview](https://raw.githubusercontent.com/Taguar258/clsp/main/docs/preview.gif)
 
-It's designed to be user friendly, minimal, and very easy to understand.
+It's designed to be user-friendly, minimal, and very easy to understand.
 
-Wether you want the user to chose a file, number, country code, you name it. It will fulfill it's purpose.
+Whether you want the user to choose a file, number, country code, you name it. It will fulfill its purpose.
 
 
 ## Documentation
@@ -28,23 +28,23 @@ Wether you want the user to chose a file, number, country code, you name it. It 
 # CLSP can be easily imported by using:
 from clsp import select
 
-# You can then show the actual prompt by calling the select function, while passing a list type as argument.
+# You can then show the actual prompt by calling the select function while passing a list type as the argument.
 
 user_choice = select(["Chose me!", "Dear you chose me!"])
 
-# You can navigate using arrow key up and down + enter to confirm selection.
+# You can navigate using the arrow key up and the arrow key down + enter to confirm your selection.
 ```
 
 You can provide additional key arguments for further configuration:
 
-|      Name       | Type  |                                  Descryption                                        |
+|      Name       | Type  |                                  Description                                        |
 | --------------- | ----- | ----------------------------------------------------------------------------------- |
-| title           | STR   | Information shown above prompt.                                                     |
+| title           | STR   | Information shown above the prompt.                                                 |
 | prompt          | STR   | Text in front of user input.                                                        |
 | search          | STR   | Pre-insert text into the input prompt.                                              |
-| current         | INT   | Index as default selection.                                                         |
+| current         | INT   | Index as the default selection.                                                     |
 | rows            | INT   | Amount of choices at a time.                                                        |
-| cutoff          | FLOAT | Presicion of search. (0<x>1).                                                       |
+| cutoff          | FLOAT | Precsion of search. (0 < x > 1).                                                        |
 | highlight_color | STR   | Highlight color for search (black, red, green, yellow, blue, magenta, cyan, white). |
 | full_exit       | BOOL  | Exit completely or pass None on KeyBoardInterrupt or ESC.                           |
 | ignore_warnings | BOOL  | Ignore warnings.                                                                    |

@@ -9,17 +9,23 @@ class Selection:
     """ Selection object passed as output of Selection Prompt.
         Contains additional information.
 
-    :attr value: User selection.
-    :attr index: Index of given input list.  (TODO)
-    :attr search: Search query of user.
+    :attr value (STR): User selection.
+    :attr index (INT): Index of given input list.
+    :attr search (STR): Search query of user.
+    :attr search_result (LIST): Provided search result.
+
+    The index cannot be determind when the user requested a search and
+    the selected item is more than once inside the given selection.
+    This is due to difflib.get_close_matches not returning the index of the result.
 
     """
 
-    def __init__(self, value, search=None):
+    def __init__(self, value, search=None, search_result=None, index=None):
 
         self.value = value
-        self.index = None  # TODO
-        self.search = search
+        self.index = index
+        self.search = search if search else None
+        self.search_result = search_result if search else None
 
     def __str__(self):
 
@@ -27,13 +33,13 @@ class Selection:
 
     def __repr__(self):
 
-        return f"<Selection {self.value}>"
+        return f"<Selection '{self.value}'>"
 
 
 class SelectionPrompt:
 
-    def __init__(self, selection, info="", prompt="> ", search="", current=0, rows=4, cutoff=0.15, highlight_color="yellow", full_exit=True):
-        """ Prompt for user selection. # TODO: Go through class again and rethink + Redo comments
+    def __init__(self, selection, info="", prompt="> ", search="", current=0, rows=4, cutoff=0.15, highlight_color="yellow", full_exit=True, ignore_warnings=False):
+        """ Prompt for user selection.
 
         Arguments
         ---------
@@ -47,9 +53,13 @@ class SelectionPrompt:
         :arg search (STR): Pre-insert text into the input prompt.
         :arg current (INT): Current item of list as default selection.
         :arg rows (INT): Amount of visible choices.
-        :arg cutoff (INT): Search precision.
+        :arg cutoff (FLOAT): Search precision.
         :arg highlight_color (STR): Search higlight color.
         :arg full_exit (BOOL): Exit completely or pass None on KeyBoardInterrupt or ESC.
+        :arg ignore_warnings (BOOL): Ignore warnings shown by this class.
+
+        TODO:
+        - Rename the variables for better understanding.
 
         """
 
@@ -70,6 +80,7 @@ class SelectionPrompt:
         self._rows = rows
         self._cutoff = cutoff
         self._full_exit = full_exit
+        self._ignore_warning = False
 
         # Variables | Dynamic variables (Terminal State)
         self._cursor_pos = None
@@ -82,6 +93,10 @@ class SelectionPrompt:
         # Variables | Dynamic variables (Input)
         self._search = search
         self._searching = False  # TODO: Find better solution to determin end of search.
+
+        if self._rows >= self._term.height and not self._ignore_warning:
+
+            print(self._term.yellow("Warning: Please increase terminal size or reduce rows."))
 
     def show(self):
         """ Entry Point | Main Loop
@@ -100,7 +115,7 @@ class SelectionPrompt:
 
                 self._flush()
 
-                # Return value
+                # Return value if set
                 if self.return_placeholder is not None:
 
                     return self.return_placeholder
@@ -117,6 +132,8 @@ class SelectionPrompt:
 
     def _print(self, out):
         """ Internal way of displaying content while counting all the written lines.
+
+        The reason for counting all the written lines is so that we can predict the cursor position.
         """
 
         stdout.write(out + "\n")
@@ -125,7 +142,7 @@ class SelectionPrompt:
         self._written_lines += 1 + out.count("\n")
 
     def _flush(self):
-        """ Clear the screen completely.
+        """ Clear the screen from cursor position downwards.
 
         Alternative would be overwriting, though it does not clear remaining characters.
         - self._reset_cursor instead of self._flush
@@ -166,16 +183,14 @@ class SelectionPrompt:
 
             self._search += key
 
-    def _move_cursor(self, cursor_x, cursor_y):  # TODO: Rework function to go back to 0, 0 and then to pos
-        """ Change the cursor position.
+    def _move_cursor(self, cursor_x, cursor_y):
+        """ Move the cursor to a different position, by calculating delta.
 
-        The x position is mostly 0 after the first stdout writes.
-        Therfore we can assume x to be 0 and set y to the amount of printed lines.
-        The y position is a lot more unpredictable than the x position.
-        Therefore we can focus on y. (TODO: Rewrite info)
+        The x position should be 0 after the first stdout writes.
+        Therfore we can assume x to be 0 and set y to the amount of written lines.
         """
 
-        # Reset position variable if x pos not known
+        # Reset position variable (Important for calculating delta) if x pos not known
         if self._cursor_pos is None:
 
             self._cursor_pos = {"x": 0, "y": self._written_lines}
@@ -200,8 +215,8 @@ class SelectionPrompt:
 
         self._cursor_pos = {"x": cursor_x, "y": cursor_y}
 
-    def _reset_cursor(self):  # TODO: !! Should be standard and before every move
-        """ Reset the cursor position and written lines.
+    def _reset_cursor(self):
+        """ Reset the cursor position to 0, 0 without flushing the screen and reset the written_lines counter.
         """
 
         self._move_cursor(0, 0)
@@ -220,23 +235,22 @@ class SelectionPrompt:
         # Display the input prompt
         self._print(self._prompt + self._search)
 
-        # Display the list
+        # Display the selection
         self._refresh_currently_shown()
 
         for pos, option in enumerate(self._currently_shown):
 
             option_msg = self._term.reverse(option) if pos + self._current_position[0] == self._current else option
+
             self._print(option_msg)
 
         # Move the cursor to the input prompt.
-        self._reset_cursor()  # TODO: (Strange Issue) Cursor position changes, needs further investigation
-        """
-        Maybe the x does not get updated on key press but does not change anything.
-        """
-
+        self._reset_cursor()  # TODO: (Strange Issue) Cursor position changes, needs further investigation.
         self._move_cursor(self._default_cursor_pos["x"] + len(self._search), self._default_cursor_pos["y"])
 
     def _reset_current_selection(self, selection, current=0):
+        """ Switch to another selection.
+        """
 
         self._current_selection = selection
         self._current = current
@@ -245,7 +259,7 @@ class SelectionPrompt:
         # self._currently_shown = self._current_selection[self._current:(self._rows + self._current)]
 
     def _refresh_currently_shown(self):
-        """ Update shown list.
+        """ Update the visible segment of the list.
         """
 
         if self._search != "":
@@ -254,9 +268,15 @@ class SelectionPrompt:
 
             best_matches_hl = [match.replace(self._search, self._highlight_color(self._search)) for match in self.best_matches]
 
-            self._reset_current_selection(best_matches_hl)
+            if not self._searching:
 
-            self._searching = True
+                self._reset_current_selection(best_matches_hl)
+
+                self._searching = True
+
+            else:
+
+                self._current_selection = best_matches_hl
 
         elif self._searching:
 
@@ -267,7 +287,7 @@ class SelectionPrompt:
         self._currently_shown = self._current_selection[self._current_position[0]:self._current_position[1]]
 
     def _navigate_menu(self, up_or_down):
-        """ Navigates Menu one item down or up
+        """ Navigates the Menu one item down or up
 
         :arg up_or_down (INT): -1 for up and 1 for down.
 
@@ -300,7 +320,7 @@ class SelectionPrompt:
             self._move_list_view(1)
 
     def _move_list_view(self, up_or_down):
-        """ Navigates Menu view
+        """ Navigates the list segment one up or down.
 
         :arg up_or_down (INT): -1 for up and 1 for down.
 
@@ -310,7 +330,7 @@ class SelectionPrompt:
         self._current_position[1] += up_or_down
 
     def _return_selection(self):
-        """ Return the user selection whilest also adding additional info.
+        """ Return the user selection whilest also providing additional info.
         """
 
         self._flush()
@@ -318,14 +338,30 @@ class SelectionPrompt:
         # Decolorize search output
         return_value_nhl = self._current_selection[self._current].replace(self._highlight_color(self._search), self._search)
 
+        # Get index (TODO: Find alternative)
+        if self._search != "":
+
+            if self._selection.count(return_value_nhl) != 1:
+
+                if not self._ignore_warning:
+
+                    print(self._term.yellow("Warning: Cannot determin exact index of search result."))
+
+            index = self._selection.index(return_value_nhl)
+
+        else:
+
+            index = self._current
+
         # Create Object
-        return_value = Selection(return_value_nhl, search=self._search)  # TODO: Add index of selection
+        return_value = Selection(return_value_nhl, search=self._search, search_result=self._current_selection, index=index)
 
         self.return_placeholder = return_value
 
 
 def select(selection, **kwargs):
-    """ TODO: Add info
+    """ Function for additional tasks to increase user-friendliness.
+        Executes the SelectionPrompt.
     """
 
     prompt = SelectionPrompt(selection, **kwargs)

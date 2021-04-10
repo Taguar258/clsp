@@ -5,7 +5,7 @@ from clsp import SelectionPrompt, select
 @pytest.fixture
 def sp():
 
-    return SelectionPrompt([1, 2, 3, 23, 11, 5], rows=1)
+    return SelectionPrompt([1, 2, 3, 23, 11, 5], rows=1, cutoff=0.15)
 
 
 def basic_tests(sp):

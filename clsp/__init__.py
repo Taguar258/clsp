@@ -54,7 +54,7 @@ class SelectionPrompt:
         :arg current (INT): Current item of list as default selection.
         :arg rows (INT): Amount of visible choices.
         :arg cutoff (FLOAT): Search precision.
-        :arg highlight_color (STR): Search higlight color.
+        :arg highlight_color (STR): Search highlight color.
         :arg full_exit (BOOL): Exit completely or pass None on KeyBoardInterrupt or ESC.
         :arg ignore_warnings (BOOL): Ignore warnings shown by this class.
 

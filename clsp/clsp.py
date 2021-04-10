@@ -6,7 +6,7 @@ from blessed import Terminal
 
 
 class Selection:
-    """ Selection object passed as output of Selection Prompt.
+    """ Selection object passed as the output of Selection Prompt.
         Contains additional information.
 
     :attr value (STR): User selection.
@@ -14,7 +14,7 @@ class Selection:
     :attr search (STR): Search query of user.
     :attr search_result (LIST): Provided search result.
 
-    The index cannot be determind when the user requested a search and
+    The index cannot be determined when the user requested a search and
     the selected item is more than once inside the given selection.
     This is due to difflib.get_close_matches not returning the index of the result.
 
@@ -68,7 +68,7 @@ class SelectionPrompt:
 
         self._key_timeout = 5
 
-        self._highlight_color = {"black": self._term.black, "red": self._term.red, "green": self._term.green, "yellow": self._term.yellow, "blue": self._term.blue, "magenta": self._term.magenta, "cyan": self._term.cyan, "white": self._term.white}[highlight_color]  # TODO: Find better solution
+        self._highlight_color = {"black": self._term.black, "red": self._term.red, "green": self._term.green, "yellow": self._term.yellow, "blue": self._term.blue, "magenta": self._term.magenta, "cyan": self._term.cyan, "white": self._term.white}[highlight_color]  # TODO: Find a better solution
 
         self._default_cursor_pos = {"x": len(prompt),
                                     "y": info.count("\n") + 1 if info else 0}
@@ -92,7 +92,7 @@ class SelectionPrompt:
 
         # Variables | Dynamic variables (Input)
         self._search = search
-        self._searching = False  # TODO: Find better solution to determin end of search.
+        self._searching = False  # TODO: Find a better solution to determine the end of the search.
 
         if self._rows >= self._term.height and not self._ignore_warning:
 
@@ -142,9 +142,9 @@ class SelectionPrompt:
         self._written_lines += 1 + out.count("\n")
 
     def _flush(self):
-        """ Clear the screen from cursor position downwards.
+        """ Clear the screen from the cursor position downwards.
 
-        Alternative would be overwriting, though it does not clear remaining characters.
+        An alternative would be overwriting, though it does not clear the remaining characters.
         - self._reset_cursor instead of self._flush
         """
 
@@ -179,7 +179,7 @@ class SelectionPrompt:
             self._search = self._search[:-1]
 
         elif len(key) == 1 and key.name is None and \
-                len(self._search) < (self._term.width - len(self._prompt)):  # On Key except special keys
+                len(self._search) < (self._term.width - len(self._prompt)):  # On Key except for special keys
 
             self._search += key
 
@@ -187,7 +187,7 @@ class SelectionPrompt:
         """ Move the cursor to a different position, by calculating delta.
 
         The x position should be 0 after the first stdout writes.
-        Therfore we can assume x to be 0 and set y to the amount of written lines.
+        Therefore we can assume x to be 0 and set y to the number of written lines.
         """
 
         # Reset position variable (Important for calculating delta) if x pos not known
@@ -308,7 +308,7 @@ class SelectionPrompt:
 
             self._current += 1
 
-        # Change menu view point
+        # Change menu viewpoint
         if self._current == self._current_position[0] - 1 and \
            up_or_down < 0:
 
@@ -330,7 +330,7 @@ class SelectionPrompt:
         self._current_position[1] += up_or_down
 
     def _return_selection(self):
-        """ Return the user selection whilest also providing additional info.
+        """ Return the user selection whilst also providing additional info.
         """
 
         self._flush()
@@ -345,7 +345,7 @@ class SelectionPrompt:
 
                 if not self._ignore_warning:
 
-                    print(self._term.yellow("Warning: Cannot determin exact index of search result."))
+                    print(self._term.yellow("Warning: Cannot determine the exact index of search result."))
 
             index = self._selection.index(return_value_nhl)
 

@@ -14,7 +14,7 @@ print("You selected:")
 print(user_choice)
 ```
 
->gif here<
+![Preview](https://raw.githubusercontent.com/Taguar258/clsp/main/docs/preview.gif)
 
 It's designed to be user friendly, minimal, and very easy to understand.
 

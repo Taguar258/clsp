@@ -18,6 +18,8 @@ print(user_choice)
 
 It's designed to be user-friendly, minimal, and very easy to understand.
 
+Due to its search function, it supports large lists and spares the end-user unnecessary frustration.
+
 Whether you want the user to choose a file, number, country code, you name it. It will fulfill its purpose.
 
 

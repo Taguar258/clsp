@@ -1,4 +1,9 @@
 
+## 1.2
+
+- Improved search function.
+- Added keyword argument 'amount_results'.
+
 ## 1.1
 
 - Needed to change version number, so I could reupload to pypi.

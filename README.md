@@ -30,7 +30,7 @@ from clsp import select
 
 # You can then show the actual prompt by calling the select function while passing a list type as the argument.
 
-user_choice = select(["Chose me!", "Dear you chose me!"])
+user_choice = select(["Choose me!", "Dare you choose me!"])
 
 # You can navigate using the arrow key up and the arrow key down + enter to confirm your selection.
 ```
@@ -53,7 +53,7 @@ You can provide additional key arguments for further configuration:
 # The function 'select' will return a Selection object which holds following attributes:
 
 print(f"Selected value: {user_choice.value}")
-# > "Chose me!" or "Dear you chose me!"
+# > "Choose me!" or "Dare you choose me!"
 
 print(f"Index: {user_choice.index}")
 # > 0 or 1
@@ -64,5 +64,5 @@ if user_choice.search:
 	# > For example 'Dare'
 
 	print(f"Search Result: {user_choice.search_result}")
-	# > For example ["Dear you chose me!"]
+	# > For example ["Dare you chose me!"]
 ```

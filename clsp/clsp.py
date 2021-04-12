@@ -163,7 +163,8 @@ class SelectionPrompt:
 
             self._exit()
 
-        elif key.name == "KEY_ENTER":
+        elif key.name == "KEY_ENTER" and \
+                len(self._current_selection) != 0:
 
             self._return_selection()
 

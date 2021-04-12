@@ -1,4 +1,8 @@
 
+## 1.3
+
+- Prevent enter when search result is empty.
+
 ## 1.2
 
 - Improved search function.

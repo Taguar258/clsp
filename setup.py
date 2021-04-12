@@ -18,7 +18,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Taguar258",
     license="MIT",
-    version="1.2",
+    version="1.3",
     keywords=["python", "cli", "console", "terminal", "input", "prompt", "tty", "ncurses", "curses"],
     url="https://github.com/Taguar258/clsp",
     packages=find_packages(exclude=["tests"]),

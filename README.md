@@ -2,7 +2,8 @@
 
 <img src="https://img.shields.io/badge/Version-1.3-orange"> <img src="https://img.shields.io/badge/Linux-yes-green"> <img src="https://img.shields.io/badge/MacOS-yes-green"> <img src="https://img.shields.io/badge/Windows-yes-green"><!-- <img src="https://img.shields.io/badge/FreeBSD-yes-green">-->
 
-CLSP short for **C**ommand **L**ine **S**election **P**rompt, is a minimalistic and fast to navigate single choice interface.
+CLSP short for **C**ommand **L**ine **S**election **P**rompt, is a by fzf inspired, minimalistic and fast to navigate single choice prompt.
+
 
 ```python
 from clsp import select

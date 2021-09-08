@@ -13,12 +13,12 @@ def requirements(fname):
 
 setup(
     name="clsp",
-    description="CLSP short for Command Line Selection Prompt, is a minimalistic and fast to navigate single choice interface.",
+    description="CLSP short for Command Line Selection Prompt, is a by fzf inspired, minimalistic, and fast to navigate single choice prompt.",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     author="Taguar258",
     license="MIT",
-    version="1.3",
+    version="1.4",
     keywords=["python", "cli", "console", "terminal", "input", "prompt", "tty", "ncurses", "curses"],
     url="https://github.com/Taguar258/clsp",
     packages=find_packages(exclude=["tests"]),
@@ -29,6 +29,7 @@ setup(
                  'Programming Language :: Python :: 3.6',
                  'Programming Language :: Python :: 3.7',
                  'Programming Language :: Python :: 3.8',
+                 'Programming Language :: Python :: 3.9',
                  'Topic :: Software Development :: Libraries',
                  'Topic :: Software Development :: User Interfaces',
                  'Topic :: Terminals'],

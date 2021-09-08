@@ -1,4 +1,9 @@
 
+## 1.4
+
+- Needed to increase version number because README on pypi isn't up to date.
+- Better visibility due to more specific keywords.
+
 ## 1.3
 
 - Prevent enter when search result is empty.

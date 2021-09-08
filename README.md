@@ -1,8 +1,8 @@
 # CLSP
 
-<img src="https://img.shields.io/badge/Version-1.3-orange"> <img src="https://img.shields.io/badge/Linux-yes-green"> <img src="https://img.shields.io/badge/MacOS-yes-green"> <img src="https://img.shields.io/badge/Windows-yes-green"><!-- <img src="https://img.shields.io/badge/FreeBSD-yes-green">-->
+<img src="https://img.shields.io/badge/Version-1.4-orange"> <img src="https://img.shields.io/badge/Linux-yes-green"> <img src="https://img.shields.io/badge/MacOS-yes-green"> <img src="https://img.shields.io/badge/Windows-yes-green"><!-- <img src="https://img.shields.io/badge/FreeBSD-yes-green">-->
 
-CLSP short for **C**ommand **L**ine **S**election **P**rompt, is a by fzf inspired, minimalistic and fast to navigate single choice prompt.
+CLSP short for **C**ommand **L**ine **S**election **P**rompt, is a by fzf inspired, minimalistic, and fast to navigate single choice prompt.
 
 
 ```python
@@ -17,25 +17,25 @@ print(user_choice)
 
 ![Preview](https://raw.githubusercontent.com/Taguar258/clsp/main/docs/preview.gif)
 
-It's designed to be user-friendly, minimal, and very easy to understand.
+CLSP is designed to be user-friendly, minimal, and very easy to understand.
 
-Due to its search function, it supports large lists and spares the end-user unnecessary frustration.
+Due to it's search function, it supports large lists and spares the end-user unnecessary frustration.
 
-Whether you want the user to choose a file, number, country code, you name it. It will fulfill its purpose.
+It's especially useful if you'd like the user to choose between files, numbers, country codes, and much more.
 
 
 ## Documentation
 
 
 ```python
-# CLSP can be easily imported by using:
+# CLSP can be easily imported using:
 from clsp import select
 
-# You can then show the actual prompt by calling the select function while passing a list type as the argument.
+# You can then show the actual prompt by calling the select function while passing a list type as the positional argument.
 
-user_choice = select(["Choose me!", "Dare you choose me!"])
+user_choice = select(["Choose me!", "Dare to choose me!"])
 
-# You can navigate using the arrow key up and the arrow key down + enter to confirm your selection.
+# You can navigate using the arrow key up and the arrow key down while pressing enter to confirm your selection.
 ```
 
 You can provide additional key arguments for further configuration:
@@ -57,7 +57,7 @@ You can provide additional key arguments for further configuration:
 # The function 'select' will return a Selection object which holds following attributes:
 
 print(f"Selected value: {user_choice.value}")
-# > "Choose me!" or "Dare you choose me!"
+# > "Choose me!" or "Dare to choose me!"
 
 print(f"Index: {user_choice.index}")
 # > 0 or 1
@@ -68,5 +68,6 @@ if user_choice.search:
 	# > For example 'Dare'
 
 	print(f"Search Result: {user_choice.search_result}")
-	# > For example ["Dare you chose me!"]
+	# > For example ["Dare to chose me!"]
 ```
+
